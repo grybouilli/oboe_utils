@@ -27,7 +27,7 @@ class Recorder : public oboe::AudioStreamDataCallback {
   oboe::DataCallbackResult onAudioReady(oboe::AudioStream* /*stream*/,
                                         void* audio_data,
                                         int32_t num_frames) override {
-    const audio_sample_t* in = static_cast<const audio_sample_t*>(audio_data);
+    const AudioSampleType* in = static_cast<const AudioSampleType*>(audio_data);
     int32_t num_samples = num_frames * m_channels;
 
     m_buffer.write(in, num_samples);

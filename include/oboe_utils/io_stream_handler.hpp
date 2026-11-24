@@ -5,6 +5,7 @@
 #include <oboe/Oboe.h>
 #include <oboe_utils/player.hpp>
 #include <oboe_utils/recorder.hpp>
+#include <oboe_utils/shared_audio_buffer.hpp>
 #include <oboe_utils/stream_manipulation.hpp>
 
 namespace obut {
@@ -32,8 +33,7 @@ using AudioSampleType = typename AudioSampleTypeFor<E>::type;
 template <template <typename> class Impl, template <typename> class Base,
           oboe::AudioFormat AF>
 concept DerivedFromForFormat =
-    std::derived_from<Impl<AudioSampleType<AF>>,
-                      Base<AudioSampleType<AF>>>;
+    std::derived_from<Impl<AudioSampleType<AF>>, Base<AudioSampleType<AF>>>;
 
 template <oboe::AudioFormat AF, template <typename> class R = Recorder,
           template <typename> class P = Player>
@@ -45,8 +45,11 @@ class IOStreamHandler {
   using Player_t = P<Sample_t>;
   using Recorder_t = R<Sample_t>;
 
-  IOStreamHandler(const int32_t dsp_sample_rate,
-                  const int32_t dsp_buffer_size) {
+  IOStreamHandler(const int32_t dsp_sample_rate, const int32_t dsp_buffer_size,
+                  const size_t ring_buffer_scale = 2)
+      : m_shared_buffer{(size_t)dsp_buffer_size * ring_buffer_scale},
+        m_recorder{1, m_shared_buffer},
+        m_player{1, m_shared_buffer} {
     if (m_in_sr = acquire_audio_stream(
             m_in_builder, oboe::Direction::Input,
             oboe::PerformanceMode::LowLatency, oboe::SharingMode::Exclusive,
@@ -152,6 +155,7 @@ class IOStreamHandler {
 
   oboe::ManagedStream m_instream, m_outstream;
   oboe::AudioStreamBuilder m_in_builder, m_out_builder;
+  SharedAudioBuffer<Sample_t> m_shared_buffer;
   Recorder_t m_recorder;
   Player_t m_player;
 

@@ -20,19 +20,19 @@ namespace obut {
 template <typename AudioSampleType>
 class Player : public oboe::AudioStreamDataCallback {
  public:
-  Player(int32_t channels, audio_buffer& buffer, const bool dbg = false)
+  Player(int32_t channels, SharedAudioBuffer<AudioSampleType>& buffer)
       : m_channels{channels}, m_buffer{buffer} {}
 
   oboe::DataCallbackResult onAudioReady(oboe::AudioStream* /*stream*/,
                                         void* audio_data,
                                         int32_t num_frames) override {
     using namespace std::chrono;
-    audio_sample_t* out = static_cast<audio_sample_t*>(audio_data);
+    AudioSampleType* out = static_cast<AudioSampleType*>(audio_data);
     const int32_t num_samples = num_frames * m_channels;
 
     // Read raw input from the shared ring-buffer
     m_buffer.read(out, num_samples);
-    processOnRead({out, num_samples});
+    processOnRead({out, (size_t)num_samples});
     return oboe::DataCallbackResult::Continue;
   }
 

@@ -7,7 +7,8 @@ project(oboe_utils
 )
 
 option(BUILD_DOCS "Build and Install Documents (Requires Doxygen)" OFF)
-option(${CMAKE_PROJECT_NAME}_BUILD_TESTING "Build and run tests" OFF)
+option(BUILD_EXAMPLE_APP "Build example passthrough app" OFF)
+option(${PROJECT_NAME}_BUILD_TESTING "Build and run tests" OFF)
 
 ## Make sure that custom modules like FindXYZ are found
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
@@ -19,19 +20,21 @@ include(cmake/FetchOboe.cmake)
 ## Define Target
 ## =============
 
-add_library(${CMAKE_PROJECT_NAME} SHARED src/stream_manipulation.cpp)
-target_include_directories(${CMAKE_PROJECT_NAME}
-  PRIVATE
+add_library(${PROJECT_NAME} SHARED src/stream_manipulation.cpp)
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_compile_features(${CMAKE_PROJECT_NAME} INTERFACE cxx_std_14)
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
-  PRIVATE oboe
+target_include_directories(${PROJECT_NAME}
+  PUBLIC oboe)
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC oboe
 )
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_DOCS)
+if(PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_DOCS)
   find_package(Doxygen REQUIRED dot)
   if(Doxygen_FOUND)
     add_subdirectory(docs)
@@ -40,14 +43,20 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_DOCS)
   endif()
 endif()
 
+if(BUILD_EXAMPLE_APP)
+  set(PASSTHROUGH_APP_BIN passthrough_app)
+  add_executable(${PASSTHROUGH_APP_BIN} src/example_app.cpp)
+  target_link_libraries(${PASSTHROUGH_APP_BIN} PRIVATE ${PROJECT_NAME})
+endif()
+
 ## Testing
 ## =======
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
 endif()
 
 ## flag RMOLIB_BUILD_TESTING for enable testing anyway
-if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR ${CMAKE_PROJECT_NAME}_BUILD_TESTING) AND BUILD_TESTING)
+if((PROJECT_NAME STREQUAL PROJECT_NAME OR ${PROJECT_NAME}_BUILD_TESTING) AND BUILD_TESTING)
   add_subdirectory(test)
 endif()
