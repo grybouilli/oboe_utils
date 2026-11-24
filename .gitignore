@@ -40,3 +40,5 @@ CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
 DartConfiguration.tcl
 Testing
+
+.vscode

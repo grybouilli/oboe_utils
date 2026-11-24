@@ -1,18 +1,18 @@
-FetchContent_Declare(
-  catch
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v2.9.1)
-FetchContent_MakeAvailable(catch)
+# FetchContent_Declare(
+#   catch
+#   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+#   GIT_TAG v2.9.1)
+# FetchContent_MakeAvailable(catch)
 
-set(unit_tests
-  tests-main
-  tests-helloworld
-)
+# set(unit_tests
+#   tests-main
+#   tests-helloworld
+# )
 
-add_executable(${CMAKE_PROJECT_NAME}_testlib ${unit_tests})
-target_compile_features(${CMAKE_PROJECT_NAME}_testlib PRIVATE cxx_std_14)
-set_target_properties(${CMAKE_PROJECT_NAME}_testlib PROPERTIES CXX_EXTENSIONS OFF)
+# add_executable(${CMAKE_PROJECT_NAME}_testlib ${unit_tests})
+# target_compile_features(${CMAKE_PROJECT_NAME}_testlib PRIVATE cxx_std_14)
+# set_target_properties(${CMAKE_PROJECT_NAME}_testlib PROPERTIES CXX_EXTENSIONS OFF)
 
-target_link_libraries(${CMAKE_PROJECT_NAME}_testlib PRIVATE ${CMAKE_PROJECT_NAME} Catch2::Catch2)
+# target_link_libraries(${CMAKE_PROJECT_NAME}_testlib PRIVATE ${CMAKE_PROJECT_NAME} Catch2::Catch2)
 
-add_test(NAME test_hello COMMAND ${CMAKE_PROJECT_NAME}_testlib)
+# add_test(NAME test_hello COMMAND ${CMAKE_PROJECT_NAME}_testlib)

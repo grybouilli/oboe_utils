@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.11...3.18)
 
-project(examplelib
+project(oboe_utils
   VERSION 1.0.0
-  DESCRIPTION "An example of a C++ header-only library using CMake, doxygen, and Catch."
-  HOMEPAGE_URL "https://github.com/hsloot/cpp-ho-library-template"
+  DESCRIPTION "C++ library providing helpers for use of Oboe"
   LANGUAGES CXX
 )
 
@@ -13,18 +12,24 @@ option(${CMAKE_PROJECT_NAME}_BUILD_TESTING "Build and run tests" OFF)
 ## Make sure that custom modules like FindXYZ are found
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+include(FetchContent)
 include(GNUInstallDirs)
+include(cmake/FetchOboe.cmake)
 
 ## Define Target
 ## =============
 
-add_library(${CMAKE_PROJECT_NAME} INTERFACE)
+add_library(${CMAKE_PROJECT_NAME} SHARED src/stream_manipulation.cpp)
 target_include_directories(${CMAKE_PROJECT_NAME}
-  INTERFACE
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
+  PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>
 )
 target_compile_features(${CMAKE_PROJECT_NAME} INTERFACE cxx_std_14)
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+  PRIVATE oboe
+)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_DOCS)
   find_package(Doxygen REQUIRED dot)
@@ -37,12 +42,6 @@ endif()
 
 ## Testing
 ## =======
-
-include(FetchContent)
-if(${CMAKE_VERSION} VERSION_LESS 3.14)
-  include(cmake/add_FetchContent_MakeAvailable.cmake)
-endif()
-
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
