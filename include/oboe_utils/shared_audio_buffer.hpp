@@ -58,10 +58,17 @@ class SharedAudioBuffer {
     return (w - r + m_capacity) % m_capacity;
   }
 
+  size_t capacity() const { return m_capacity; }
+
+  void clear() {
+    m_read_pos = 0;
+    m_write_pos = 0;
+  }
+
  private:
   std::vector<SampleType> m_buffer;
   size_t m_capacity;
   std::atomic<size_t> m_write_pos{0};
   std::atomic<size_t> m_read_pos{0};
 };
-}
+}  // namespace obut

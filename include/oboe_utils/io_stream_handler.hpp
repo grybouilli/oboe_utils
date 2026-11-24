@@ -47,7 +47,8 @@ class IOStreamHandler {
 
   IOStreamHandler(const int32_t dsp_sample_rate, const int32_t dsp_buffer_size,
                   const size_t ring_buffer_scale = 2)
-      : m_shared_buffer{(size_t)dsp_buffer_size * ring_buffer_scale},
+      : m_dsp_buffer_size{dsp_buffer_size},
+        m_shared_buffer{(size_t)dsp_buffer_size * ring_buffer_scale},
         m_recorder{1, m_shared_buffer},
         m_player{1, m_shared_buffer} {
     if (m_in_sr = acquire_audio_stream(
@@ -89,25 +90,33 @@ class IOStreamHandler {
   const int32_t& get_out_sr() const { return m_out_sr; }
 
   bool start_streams() {
-    auto result = m_instream->requestStart();
-    if (result != oboe::Result::OK) {
-      fprintf(stderr, "Failed to start stream: %s\n",
-              oboe::convertToText(result));
-      return false;
-    }
-    result = m_outstream->requestStart();
-    if (result != oboe::Result::OK) {
-      fprintf(stderr, "Failed to start stream: %s\n",
-              oboe::convertToText(result));
-      return false;
-    }
+    // Make sure the buffer is clean before anything runs
+    m_shared_buffer.clear();
 
+    auto r = m_instream->start(1'000'000'000);  // 1 s timeout
+    if (r != oboe::Result::OK) {
+      fprintf(stderr, "Input start failed: %s\n", oboe::convertToText(r));
+      return false;
+    }
+    r = m_outstream->start(1'000'000'000);
+    if (r != oboe::Result::OK) {
+      fprintf(stderr, "Output start failed: %s\n", oboe::convertToText(r));
+      return false;
+    }
     return true;
   }
 
-  void stop_streams() {
-    m_outstream->requestStop();
-    m_instream->requestStop();
+  bool stop_streams() {
+    auto r1 = m_outstream->stop(1'000'000'000);
+    auto r2 = m_instream->stop(1'000'000'000);
+    if (r1 != oboe::Result::OK || r2 != oboe::Result::OK) {
+      fprintf(stderr, "Stop failed: out=%s in=%s\n", oboe::convertToText(r1),
+              oboe::convertToText(r2));
+      return false;
+    }
+    // Both streams are Stopped here, so no callback is touching the buffer
+    m_shared_buffer.clear();
+    return true;
   }
 
  private:
@@ -153,12 +162,12 @@ class IOStreamHandler {
     return create_streams(audio_buffer_size, audio_buffer_size);
   }
 
+  int32_t m_in_sr, m_out_sr;
+  int32_t m_dsp_buffer_size;
   oboe::ManagedStream m_instream, m_outstream;
   oboe::AudioStreamBuilder m_in_builder, m_out_builder;
   SharedAudioBuffer<Sample_t> m_shared_buffer;
   Recorder_t m_recorder;
   Player_t m_player;
-
-  int32_t m_in_sr, m_out_sr;
 };
 }  // namespace obut

@@ -31,8 +31,12 @@ class Player : public oboe::AudioStreamDataCallback {
     const int32_t num_samples = num_frames * m_channels;
 
     // Read raw input from the shared ring-buffer
-    m_buffer.read(out, num_samples);
-    processOnRead({out, (size_t)num_samples});
+    if(m_buffer.size() >= num_samples){
+        m_buffer.read(out, num_samples);
+        processOnRead({out, (size_t)num_samples});
+    } else {
+      std::fill(out, out + num_samples, AudioSampleType{});
+    }
     return oboe::DataCallbackResult::Continue;
   }
 
