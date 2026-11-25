@@ -51,18 +51,18 @@ class IOStreamHandler {
         m_shared_buffer{(size_t)dsp_buffer_size * ring_buffer_scale},
         m_recorder{1, m_shared_buffer},
         m_player{1, m_shared_buffer} {
-    if (m_in_sr = acquire_audio_stream(
-            m_in_builder, oboe::Direction::Input,
-            oboe::PerformanceMode::LowLatency, oboe::SharingMode::Exclusive,
-            oboe::AudioFormat::Float, oboe::ChannelCount::Mono);
+    if (m_in_sr = acquire_audio_stream(m_in_builder, oboe::Direction::Input,
+                                       oboe::PerformanceMode::LowLatency,
+                                       oboe::SharingMode::Exclusive, AF,
+                                       oboe::ChannelCount::Mono);
         m_in_sr < 0) {
       fprintf(stderr, "Could not acquire input stream\n");
     }
 
-    if (m_out_sr = acquire_audio_stream(
-            m_out_builder, oboe::Direction::Output,
-            oboe::PerformanceMode::LowLatency, oboe::SharingMode::Exclusive,
-            oboe::AudioFormat::Float, oboe::ChannelCount::Mono);
+    if (m_out_sr = acquire_audio_stream(m_out_builder, oboe::Direction::Output,
+                                        oboe::PerformanceMode::LowLatency,
+                                        oboe::SharingMode::Exclusive, AF,
+                                        oboe::ChannelCount::Mono);
         m_out_sr < 0) {
       fprintf(stderr, "Could not acquire output stream\n");
     }
